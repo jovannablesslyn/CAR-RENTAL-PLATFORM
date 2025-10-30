@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Car Rental App</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet" />
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #ece9f6 0%, #f3e6ff 100%);
+      color: #322761;
+      min-height: 100vh;
+    }
+    :root {
+      --primary-color: #7f43e1;
+      --secondary-color: #cda4fa;
+      --sidebar-width: 255px;
+      --sidebar-bg: linear-gradient(135deg, #e5e0f4 0%, #f2edfa 100%);
+      --sidebar-active: #dfccfa;
+      --header-bg: #f6eeff;
+      --table-bg: #faf8fb;
+      --card-bg: #efebf8;
+      --glow: 0 1px 12px rgba(60, 40, 125, 0.07);
+    }
+    .container { display: flex; min-height: 100vh; }
+    .sidebar {
+      width: var(--sidebar-width);
+      background: rgba(226, 217, 241, 0.91);
+      backdrop-filter: blur(3.5px);
+      padding: 38px 0 0 0;
+      border-right: 1px solid #e4dcfa;
+      position: fixed; height: 100vh;
+      z-index: 100;
+      display: flex; flex-direction: column; gap: 46px;
+      box-shadow: 16px 0 38px -6px rgba(130,80,190,0.09);
+    }
+    .logo {
+      font-size: 2.14rem;
+      font-weight: 700;
+      color: var(--primary-color);
+      margin-bottom: 54px;
+      margin-left: 30px;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 7px;
+      letter-spacing: 1.5px;
+    }
+    .logo i {
+      font-size: 2.34rem;
+      margin-bottom: 6px;
+    }
+    .nav-item {
+      font-size: 1.10rem;
+      width: 203px;
+      margin-left: 20px;
+      margin-bottom: 12px;
+      padding: 16px 20px 16px 18px;
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      color: #7052ad;
+      background: none;
+      cursor: pointer;
+      border: none;
+      transition: background .14s, color .12s;
+      font-weight: 540;
+      box-shadow: 0 1px 12px 0 rgba(165,138,230,.07);
+      letter-spacing: 0.06em;
+      outline: none;
+    }
+    .nav-item.active,
+    .nav-item:focus,
+    .nav-item:hover {
+      background: linear-gradient(93deg, #d9c8fb 65%, #ede6fa 100%);
+      color: var(--primary-color);
+      font-weight: 670;
+      box-shadow: 0 2px 16px 0 rgba(110,63,219,0.09);
+      border-left: 5px solid #9b6cf7;
+    }
+    .nav-item i {
+      font-size: 1.18rem;
+      margin-right: 2px;
+      opacity: 0.90;
+    }
+    @media (max-width: 700px) {
+      .sidebar { width: 100vw; position:static; height:auto; flex-direction:row; gap:0; }
+      .logo { flex-direction: row; align-items: center; margin-bottom:18px;}
+      .nav-item { width: auto; margin-left: 7px; margin-bottom: 0; padding: 11px 9px; }
+    }
+    .main-content {
+      margin-left: var(--sidebar-width);
+      flex: 1;
+      min-width: 0;
+      padding: 51px 57px 0 57px;
+    }
+    .header {
+      background: var(--header-bg);
+      border-radius: 16px;
+      padding: 23px 44px;
+      display: flex; justify-content: space-between; align-items: center; margin-bottom: 38px;
+      box-shadow: 0 1px 22px rgba(60,40,125,0.06);
+      border: 1.5px solid #ebdffa;
+    }
+    .search-bar { display: flex; align-items: center; gap: 13px; background: #f5f2fb; padding: 15px 24px; border-radius: 12px; width: 390px; font-size: 1.08rem; border: 1.5px solid #dfcbfa; transition: box-shadow .14s; box-shadow: 0 1px 5px 0 rgba(80,60,160,.07);}
+    .search-bar:focus-within { box-shadow: 0 4px 14px #d8beff2e; }
+    .search-bar input { border: none; background: none; outline: none; width: 100%; font-size: 1.1rem; color: #483574; }
+    .user-profile{ display: flex; align-items: center; gap: 10px; cursor: pointer; background: #efebf9; padding: 8px 18px 8px 13px; border-radius: 20px; box-shadow: 0 1px 6px 0 #d2c0fa15; transition: background .17s;}
+    .user-profile:hover{background: #efddfb;}
+    .user-avatar{ width:39px;height:39px;border-radius:50%;background:var(--primary-color);color:#fff;font-size:1.23rem; display:flex;align-items:center;justify-content:center;box-shadow: 0 2px 6px #ae88ed2e;}
+    .logout-btn,.login-btn { background: #f4eaff; color: #773af2; border: none; border-radius: 8px; padding: 7px 18px; font-weight: 500; margin-left: 8px; cursor: pointer; transition: background .15s, color .13s; box-shadow: 0 1px 3px #d8c0ef23;}
+    .logout-btn:hover,.login-btn:hover {background: #e7d1ff; color: #5d1ee6;}
+    .dashboard-cards{ display:grid;grid-template-columns:repeat(auto-fit,minmax(245px,1fr));gap:27px;margin-bottom:32px;}
+    .card{ background:var(--card-bg); padding:31px 29px 23px 29px; border-radius:16px; box-shadow:0 1px 12px rgba(110,60,168,.12); display:flex;flex-direction:column;gap:14px;min-width:0; border: 1.2px solid #e8d7fb;}
+    .card-header{display:flex;align-items:center;gap:16px;}
+    .card-icon{width:38px;height:38px;background:linear-gradient(135deg,#a083fd 30%,#9063cd 100%);border-radius:9px;color:#fff;display:flex;align-items:center;justify-content:center;font-size:1.6rem;}
+    .card-title{font-size:1rem;color:#7d62bc;font-weight:500;}
+    .card-value{font-size:2.1rem;font-weight:bold;color:#322761;}
+    .table-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;}
+    .add-car-btn,.add-booking-btn{background:linear-gradient(135deg,#8e63ea 60%,#af88f4 100%);color:#fff;border:none;padding:13px 29px; border-radius:12px;font-weight:600;font-size:1.06rem;cursor:pointer;display:flex;align-items:center;gap:13px; box-shadow: 0 2px 12px #ea80fd1b; transition: background .13s; margin-right: 7px;}
+    .add-car-btn:hover,.add-booking-btn:hover{background:var(--primary-color);}
+    table{width:100%;background:var(--table-bg);border-radius:16px;box-shadow:0 1px 14px #cab2ff0f; border-collapse:separate;border-spacing:0;margin:0;overflow:hidden;margin-bottom:15px;}
+    th,td{padding:20px 15px;min-width:88px;text-align:left;border-bottom:1px solid #ebe1fa;font-size:1.13rem;}
+    th{background:#f5f0fa;color:#9063cd;font-size:1.07rem;font-weight:670;}
+    td{color:#5b407f;}
+    tr:last-child td{border-bottom:none;}
+    .status-badge{padding:8px 16px;border-radius:16px;font-size:15px;font-weight:500;}
+    .status-available{background:#e7e6fe;color:#7c47b5;}
+    .status-rented{background:#f5eaff;color:#c336be;}
+    .status-active{background:#ece3fd;color:#9063cd;}
+    .status-completed{background:#e7e9fa;color:#520184;}
+    .status-cancelled{background:#fff0fa;color:#bc003d;}
+    .action-buttons{display:flex;gap:10px;}
+    .action-btn{padding:8px 14px;border:none;border-radius:7px;cursor:pointer;}
+    .edit-btn{background:#efeafd;color:var(--primary-color);}
+    .delete-btn{background:#fff0fa;color:#bc003d;}
+    .modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(63,43,123,0.09);justify-content:center;align-items:center;z-index:20;}
+    .modal-content{ background:#fff;padding:39px 22px;border-radius:16px;width:390px;max-width:95%; box-shadow:0 4px 24px #b69dff2c; border: 2px solid #e4d5fa; position: relative;}
+    .modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;}
+    .close-btn{background:none;border:none;font-size:2rem;font-weight: bold;cursor:pointer;color:#9063cd;}
+    .profile-modal .modal-content{width:340px;}
+    .form-group{margin-bottom:20px;}
+    .form-group label{display:block;margin-bottom:8px;font-weight:500;color:#563985;}
+    .form-group input,.form-group select{width:100%;padding:11px 9px;border:1.3px solid #dac7fb;border-radius:8px;font-size:1rem;box-shadow: 0 1px 6px #ceb1ff0f;}
+    .form-group input:focus,.form-group select:focus{border-color:var(--primary-color);}
+    .submit-btn{background:var(--primary-color);color:#fff;border:none;padding:13px 0;border-radius:8px;cursor:pointer;width:100%;font-size:1.1rem;font-weight:570;}
+    .submit-btn:hover{background:var(--secondary-color);}
+    .section{display:none;}
+    .section.active{display:block;}
+    .dashboard.active{display:grid;}
+    .empty-state{text-align:center;padding:40px 20px;color:#9063cd;}
+    .empty-state i{font-size:48px;margin-bottom:20px;color:#bf95f4;}
+    .empty-state h3{margin-bottom:10px;color:#322761;}
+    @media (max-width:1000px){
+      .main-content{padding:28px 4vw 0 4vw;}
+      .header{padding:18px 6vw;}
+      .sidebar{padding:8px 3px 0 2px;}
+      .dashboard-cards{grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:13px;}
+      th,td{padding:12px 6px;font-size:0.98rem;}
+    }
+  </style>
+</head>
+<body>
+
+<div class="modal" id="loginModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>Login</h2>
+      <button class="close-btn" onclick="closeLoginModal()">&times;</button>
+    </div>
+    <form id="loginForm">
+      <div class="form-group">
+        <label for="loginUsername">Username</label>
+        <input type="text" id="loginUsername" required>
+      </div>
+      <div class="form-group">
+        <label for="loginPassword">Password</label>
+        <input type="password" id="loginPassword" required>
+      </div>
+      <button type="submit" class="submit-btn">Login</button>
+    </form>
+    <div id="loginError" style="color:red;display:none;margin-top:10px"></div>
+  </div>
+</div>
+<!-- PROFILE MODAL -->
+<div class="modal profile-modal" id="profileModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>User Profile</h2>
+      <button class="close-btn" onclick="closeProfileModal()">&times;</button>
+    </div>
+    <div><strong>Name:</strong> <span id="profileName">Admin</span></div>
+  </div>
+</div>
+<div class="container">
+  <div class="sidebar">
+    <div class="logo">
+      <i class="fas fa-car"></i>
+      <span>Car Rental<br>App</span>
+    </div>
+    <div class="nav-item active" data-section="dashboard"><i class="fas fa-chart-pie"></i> Dashboard</div>
+    <div class="nav-item" data-section="cars"><i class="fas fa-car-side"></i> Cars</div>
+    <div class="nav-item" data-section="bookings"><i class="fas fa-calendar-check"></i> Bookings</div>
+    <div class="nav-item" data-section="settings"><i class="fas fa-cog"></i> Settings</div>
+  </div>
+  <div class="main-content">
+    <div class="header">
+      <div class="search-bar"><i class="fas fa-search"></i> <input type="text" placeholder="Search cars or bookings..." /></div>
+      <div class="user-profile" id="userProfileBtn" tabindex="0">
+        <div class="user-avatar"><i class="fas fa-user"></i></div>
+        <span id="userProfileName">Admin</span>
+        <button class="login-btn" onclick="openLoginModal()">Login</button>
+        <button class="logout-btn" onclick="logout()">Logout</button>
+      </div>
+    </div>
+    <div id="dashboardSection" class="section dashboard active">
+      <div class="dashboard-cards">
+        <div class="card"><div class="card-header"><div class="card-icon"><i class="fas fa-car"></i></div></div><div class="card-title">Total Cars</div>
+          <div class="card-value" id="totalCars">0</div></div>
+        <div class="card"><div class="card-header"><div class="card-icon"><i class="fas fa-calendar-check"></i></div></div><div class="card-title">Active Bookings</div>
+          <div class="card-value" id="activeBookings">0</div></div>
+        <div class="card"><div class="card-header"><div class="card-icon"><i class="fas fa-car-side"></i></div></div><div class="card-title">Available Cars</div>
+          <div class="card-value" id="availableCars">0</div></div>
+        <div class="card"><div class="card-header"><div class="card-icon"><i class="fas fa-check-circle"></i></div></div><div class="card-title">Total Bookings</div>
+          <div class="card-value" id="totalBookings">0</div></div>
+      </div>
+    </div>
+    <div id="carsSection" class="section">
+      <div class="table-header">
+        <h2>Cars</h2>
+        <button class="add-car-btn" onclick="openCarModal()"><i class="fas fa-plus"></i> Add Car</button>
+      </div>
+      <table>
+        <thead>
+        <tr>
+          <th>ID</th>
+          <th>Model</th>
+          <th>Brand</th>
+          <th>Registration No</th>
+          <th>Price/Day</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+        </thead>
+        <tbody id="carTableBody"></tbody>
+      </table>
+    </div>
+    <div id="bookingsSection" class="section">
+      <div class="table-header">
+        <h2>Bookings</h2>
+        <button class="add-booking-btn" onclick="openBookingModal()"><i class="fas fa-plus"></i> Add Booking</button>
+      </div>
+      <table>
+        <thead>
+        <tr>
+          <th>ID</th>
+          <th>Car</th>
+          <th>Customer</th>
+          <th>Rent From</th>
+          <th>Rent To</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+        </thead>
+        <tbody id="bookingTableBody"></tbody>
+      </table>
+    </div>
+    <div id="settingsSection" class="section">
+      <h2>Settings</h2>
+      <form id="settingsForm">
+        <div class="form-group">
+          <label for="settingsPassword">Change Password</label>
+          <input type="password" id="settingsPassword" placeholder="New password">
+        </div>
+        <button type="submit" class="submit-btn">Update Settings</button>
+        <div id="settingsResult" style="color:green;margin-top:10px"></div>
+      </form>
+    </div>
+    <div class="modal" id="carModal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 id="carModalTitle">Add New Car</h2>
+          <button class="close-btn" onclick="closeCarModal()">&times;</button>
+        </div>
+        <form id="carForm">
+          <div class="form-group"><label for="carModel">Model</label><input type="text" id="carModel" required></div>
+          <div class="form-group"><label for="carBrand">Brand</label><input type="text" id="carBrand" required></div>
+          <div class="form-group"><label for="registrationNo">Registration No</label><input type="text" id="registrationNo" required></div>
+          <div class="form-group"><label for="pricePerDay">Price Per Day</label><input type="number" id="pricePerDay" required min="1"></div>
+          <div class="form-group"><label for="carStatus">Status</label>
+            <select id="carStatus" required>
+              <option value="available">Available</option>
+              <option value="rented">Rented</option>
+            </select>
+          </div>
+          <button type="submit" class="submit-btn">Save Car</button>
+        </form>
+      </div>
+    </div>
+    <div class="modal" id="bookingModal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 id="bookingModalTitle">Add New Booking</h2>
+          <button class="close-btn" onclick="closeBookingModal()">&times;</button>
+        </div>
+        <form id="bookingForm">
+          <div class="form-group"><label for="bookingCustomerName">Customer Name</label><input type="text" id="bookingCustomerName" required></div>
+          <div class="form-group"><label for="bookingCar">Car</label><select id="bookingCar" required></select></div>
+          <div class="form-group"><label for="bookingRentFrom">Rent From</label><input type="date" id="bookingRentFrom" required></div>
+          <div class="form-group"><label for="bookingRentTo">Rent To</label><input type="date" id="bookingRentTo" required></div>
+          <div class="form-group"><label for="bookingStatus">Status</label>
+            <select id="bookingStatus" required>
+              <option value="active">Active</option>
+              <option value="completed">Completed</option>
+              <option value="cancelled">Cancelled</option>
+            </select>
+          </div>
+          <button type="submit" class="submit-btn">Save Booking</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+const backendUrl = 'http://localhost:3000';
+let activeUsername = "Admin";
+
+function openProfileModal() {
+  document.getElementById('profileName').textContent = activeUsername;
+  document.getElementById('profileModal').style.display = 'flex';
+}
+function closeProfileModal() {
+  document.getElementById('profileModal').style.display = 'none';
+}
+document.getElementById('userProfileBtn').onclick = function() { openProfileModal(); };
+function logout() {
+  localStorage.removeItem('token');
+  location.reload();
+}
+function openLoginModal() {
+  document.getElementById('loginModal').style.display = 'flex';
+}
+function closeLoginModal() {
+  document.getElementById('loginModal').style.display = 'none';
+}
+document.querySelectorAll('.nav-item').forEach(item => {
+  item.addEventListener('click', () => {
+    document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
+    item.classList.add('active');
+    document.querySelectorAll('.section').forEach(sec => sec.classList.remove('active'));
+    const sectionId = item.getAttribute('data-section');
+    document.getElementById(sectionId + 'Section').classList.add('active');
+  });
+});
+document.getElementById('loginForm').onsubmit = async function(e) {
+  e.preventDefault();
+  const username = document.getElementById('loginUsername').value;
+  const password = document.getElementById('loginPassword').value;
+  const res = await fetch(`${backendUrl}/api/auth/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username, password })
+  });
+  const data = await res.json();
+  if (res.ok) {
+    localStorage.setItem('token', data.token);
+    activeUsername = username;
+    document.getElementById('userProfileName').textContent = username;
+    closeLoginModal();
+    init();
+  } else {
+    document.getElementById('loginError').style.display = 'block';
+    document.getElementById('loginError').textContent = data.message || "Login failed";
+  }
+};
+function ensureUsernameDisplay() {
+  document.getElementById('userProfileName').textContent = activeUsername;
+}
+async function fetchWithAuth(url, options = {}) {
+  const token = localStorage.getItem('token');
+  options.headers = options.headers || {};
+  if (token) options.headers['Authorization'] = 'Bearer ' + token;
+  return await fetch(url, options);
+}
+async function loadDashboardStats() {
+  const res = await fetchWithAuth(`${backendUrl}/api/dashboard/stats`);
+  const stats = await res.json();
+  document.getElementById('totalCars').textContent = stats.totalCars;
+  document.getElementById('availableCars').textContent = stats.availableCars;
+  document.getElementById('totalBookings').textContent = stats.totalBookings;
+  document.getElementById('activeBookings').textContent = stats.activeBookings;
+}
+async function loadCars() {
+  const res = await fetchWithAuth(`${backendUrl}/api/cars`);
+  const cars = await res.json();
+  const tbody = document.getElementById('carTableBody');
+  tbody.innerHTML = '';
+  if (!cars.length) {
+    tbody.innerHTML = `<tr><td colspan="7" class="empty-state"><i class="fas fa-car-side"></i><h3>No cars found</h3></td></tr>`;
+    return;
+  }
+  cars.forEach(car => {
+    tbody.innerHTML += `
+      <tr>
+        <td>${car._id}</td>
+        <td>${car.model}</td>
+        <td>${car.brand}</td>
+        <td>${car.registrationNo}</td>
+        <td>${car.pricePerDay}</td>
+        <td><span class="status-badge status-${car.status}">${car.status.charAt(0).toUpperCase() + car.status.slice(1)}</span></td>
+        <td class="action-buttons">
+          <button class="edit-btn" onclick="openEditCarModal('${car._id}')">Edit</button>
+          <button class="delete-btn" onclick="deleteCar('${car._id}')">Delete</button>
+        </td>
+      </tr>
+    `;
+  });
+  document.getElementById('bookingCar').innerHTML = cars
+    .filter(car => car.status === "available")
+    .map(car =>
+      `<option value="${car._id}">${car.brand} - ${car.model} (${car.registrationNo})</option>`
+    ).join('');
+}
+function openCarModal() {
+  document.getElementById('carModalTitle').textContent = "Add New Car";
+  document.getElementById('carForm').reset();
+  document.getElementById('carForm').removeAttribute('data-car-id');
+  document.getElementById('carModal').style.display = 'flex';
+}
+function closeCarModal() {
+  document.getElementById('carModal').style.display = 'none';
+}
+async function deleteCar(carId) {
+  if (!confirm("Are you sure you want to delete this car?")) return;
+  await fetchWithAuth(`${backendUrl}/api/cars/${carId}`, { method: 'DELETE' });
+  loadCars(); loadDashboardStats();
+}
+function openEditCarModal(carId) {
+  fetchWithAuth(`${backendUrl}/api/cars/${carId}`).then(res => res.json()).then(car => {
+    document.getElementById('carModalTitle').textContent = "Edit Car";
+    document.getElementById('carModel').value = car.model;
+    document.getElementById('carBrand').value = car.brand;
+    document.getElementById('registrationNo').value = car.registrationNo;
+    document.getElementById('pricePerDay').value = car.pricePerDay;
+    document.getElementById('carStatus').value = car.status;
+    document.getElementById('carForm').setAttribute('data-car-id', carId);
+    document.getElementById('carModal').style.display = 'flex';
+  });
+}
+document.getElementById('carForm').onsubmit = async function(e){
+  e.preventDefault();
+  const car = {
+    model: document.getElementById('carModel').value,
+    brand: document.getElementById('carBrand').value,
+    registrationNo: document.getElementById('registrationNo').value,
+    pricePerDay: document.getElementById('pricePerDay').value,
+    status: document.getElementById('carStatus').value,
+  };
+  const carId = this.getAttribute('data-car-id');
+  if (carId) {
+    await fetchWithAuth(`${backendUrl}/api/cars/${carId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(car)
+    });
+    this.removeAttribute('data-car-id');
+  } else {
+    await fetchWithAuth(`${backendUrl}/api/cars`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(car)
+    });
+  }
+  closeCarModal();
+  loadCars(); loadDashboardStats();
+  this.reset();
+};
+async function loadBookings() {
+  await loadCars();
+  const res = await fetchWithAuth(`${backendUrl}/api/bookings`);
+  const bookings = await res.json();
+  const tbody = document.getElementById('bookingTableBody');
+  tbody.innerHTML = '';
+  if (!bookings.length) {
+    tbody.innerHTML = `<tr><td colspan="7" class="empty-state"><i class="fas fa-calendar-check"></i><h3>No bookings found</h3></td></tr>`;
+    return;
+  }
+  bookings.forEach(bk => {
+    tbody.innerHTML += `
+      <tr>
+        <td>${bk._id}</td>
+        <td>${bk.car ? (bk.car.brand + ' - ' + bk.car.model) : ''}</td>
+        <td>${bk.customerName}</td>
+        <td>${bk.rentFrom ? new Date(bk.rentFrom).toLocaleDateString() : ''}</td>
+        <td>${bk.rentTo ? new Date(bk.rentTo).toLocaleDateString() : ''}</td>
+        <td><span class="status-badge status-${bk.status}">${bk.status.charAt(0).toUpperCase() + bk.status.slice(1)}</span></td>
+        <td class="action-buttons">
+          <button class="edit-btn" onclick="openEditBookingModal('${bk._id}')">Edit</button>
+          <button class="delete-btn" onclick="deleteBooking('${bk._id}')">Delete</button>
+        </td>
+      </tr>
+    `;
+  });
+}
+function openBookingModal() {
+  document.getElementById('bookingModalTitle').textContent = "Add New Booking";
+  document.getElementById('bookingForm').reset();
+  document.getElementById('bookingForm').removeAttribute('data-booking-id');
+  document.getElementById('bookingModal').style.display = 'flex';
+  loadCars();
+}
+function closeBookingModal() { document.getElementById('bookingModal').style.display = 'none'; }
+
+async function deleteBooking(bookingId) {
+  if (!confirm("Are you sure you want to delete this booking?")) return;
+  await fetchWithAuth(`${backendUrl}/api/bookings/${bookingId}`, { method: 'DELETE' });
+  loadBookings(); loadDashboardStats();
+}
+function openEditBookingModal(bookingId) {
+  fetchWithAuth(`${backendUrl}/api/bookings/${bookingId}`).then(res => res.json()).then(bk => {
+    document.getElementById('bookingModalTitle').textContent = "Edit Booking";
+    document.getElementById('bookingCustomerName').value = bk.customerName;
+    document.getElementById('bookingCar').value = bk.car?._id || '';
+    document.getElementById('bookingRentFrom').value = bk.rentFrom ? bk.rentFrom.substring(0,10) : '';
+    document.getElementById('bookingRentTo').value = bk.rentTo ? bk.rentTo.substring(0,10) : '';
+    document.getElementById('bookingStatus').value = bk.status;
+    document.getElementById('bookingForm').setAttribute('data-booking-id', bookingId);
+    document.getElementById('bookingModal').style.display = 'flex';
+    loadCars();
+  });
+}
+document.getElementById('bookingForm').onsubmit = async function(e){
+  e.preventDefault();
+  const booking = {
+    customerName: document.getElementById('bookingCustomerName').value,
+    car: document.getElementById('bookingCar').value,
+    rentFrom: document.getElementById('bookingRentFrom').value,
+    rentTo: document.getElementById('bookingRentTo').value,
+    status: document.getElementById('bookingStatus').value
+  };
+  const bookingId = this.getAttribute('data-booking-id');
+  if (bookingId) {
+    await fetchWithAuth(`${backendUrl}/api/bookings/${bookingId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(booking)
+    });
+    this.removeAttribute('data-booking-id');
+  } else {
+    await fetchWithAuth(`${backendUrl}/api/bookings`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(booking)
+    });
+  }
+  closeBookingModal();
+  loadBookings(); loadDashboardStats();
+  this.reset();
+};
+document.getElementById('settingsForm').onsubmit = async function(e) {
+  e.preventDefault();
+  const password = document.getElementById('settingsPassword').value;
+  const res = await fetchWithAuth(`${backendUrl}/api/auth/settings`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ password })
+  });
+  const data = await res.json();
+  if (res.ok) {
+    document.getElementById('settingsResult').textContent = "Settings updated successfully!";
+    document.getElementById('settingsPassword').value = "";
+  } else {
+    document.getElementById('settingsResult').textContent = data.message || "Error updating settings.";
+  }
+};
+function isAuthenticated() { return !!localStorage.getItem('token'); }
+function init() {
+  ensureUsernameDisplay();
+  loadDashboardStats(); loadCars(); loadBookings();
+}
+window.onload = function() {
+  if (!isAuthenticated()) openLoginModal(); else init();
+};
+window.onclick = function(event) {
+  if (event.target === document.getElementById('carModal')) closeCarModal();
+  if (event.target === document.getElementById('bookingModal')) closeBookingModal();
+  if (event.target === document.getElementById('loginModal')) closeLoginModal();
+  if (event.target === document.getElementById('profileModal')) closeProfileModal();
+};
+// SEARCH for Cars/Bookings (live table filter):
+document.querySelector('.search-bar input').addEventListener('input', function() {
+  const q = this.value.toLowerCase().trim();
+  const carsActive = document.getElementById('carsSection').classList.contains('active');
+  const bookingsActive = document.getElementById('bookingsSection').classList.contains('active');
+  if (carsActive) {
+    Array.from(document.querySelectorAll('#carTableBody tr')).forEach(tr => {
+      const text = tr.textContent.toLowerCase();
+      tr.style.display = (!q || text.includes(q)) ? '' : 'none';
+    });
+  }
+  if (bookingsActive) {
+    Array.from(document.querySelectorAll('#bookingTableBody tr')).forEach(tr => {
+      const text = tr.textContent.toLowerCase();
+      tr.style.display = (!q || text.includes(q)) ? '' : 'none';
+    });
+  }
+});
+</script>
+</body>
+</html>
